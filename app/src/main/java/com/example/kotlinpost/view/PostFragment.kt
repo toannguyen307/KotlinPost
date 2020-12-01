@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,14 +27,9 @@ import kotlinx.android.synthetic.main.fragment_post.*
 
 class PostFragment : Fragment(), Contract.IView, OnItemListener {
     var mPosts: MutableList<Post> = mutableListOf()
-    private lateinit var postPresenter: PostPresenter
+    private var postPresenter: PostPresenter= PostPresenter(this)
     private lateinit var adapters: PostAdapter
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        postPresenter = PostPresenter(this)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,7 +78,7 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
     }
 
     override fun showError(e: Exception?) {
-
+        Toast.makeText(context,"Internet connection error",Toast.LENGTH_LONG).show()
     }
 
     override fun showHideLoading() {
