@@ -1,21 +1,15 @@
 package com.example.kotlinpost.view
 
 import android.annotation.SuppressLint
-import android.app.ProgressDialog
-import android.content.Context
-import android.icu.util.ValueIterator
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.kotlinpost.Contract
 import com.example.kotlinpost.R
 import com.example.kotlinpost.R.color.purple_700
@@ -26,10 +20,11 @@ import com.example.kotlinpost.presenter.PostPresenter
 import kotlinx.android.synthetic.main.fragment_post.*
 
 class PostFragment : Fragment(), Contract.IView, OnItemListener {
-    var mPosts: MutableList<Post> = mutableListOf()
-    private var postPresenter: PostPresenter= PostPresenter(this)
+    private val mPosts: MutableList<Post> by lazy { mutableListOf() }
+    private val postPresenter: PostPresenter by lazy {
+        PostPresenter(this)
+    }
     private lateinit var adapters: PostAdapter
-    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +41,7 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
 
     override fun onStart() {
         super.onStart()
-        postPresenter?.run {
+        postPresenter.run {
             getData()
         }
     }
@@ -54,11 +49,10 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
     @SuppressLint("ResourceAsColor")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        swipeRefreshLayout = view.findViewById(R.id.swipeRefresh)
-        swipeRefreshLayout.setColorSchemeColors(purple_700, R.color.custom)
-        swipeRefreshLayout.setOnRefreshListener {
+        swipeRefresh.setColorSchemeColors(purple_700, R.color.custom)
+        swipeRefresh.setOnRefreshListener {
             Handler().postDelayed({
-                postPresenter?.run {
+                postPresenter.run {
                     getData()
                 }
             }, 1000)
@@ -78,11 +72,11 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
     }
 
     override fun showError(e: Exception?) {
-        Toast.makeText(context,"Internet connection error",Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "Internet connection error", Toast.LENGTH_LONG).show()
     }
 
     override fun showHideLoading() {
-        swipeRefreshLayout!!.isRefreshing = false
+        swipeRefresh.isRefreshing = false
         progressBar.visibility = View.GONE
     }
 
@@ -99,14 +93,16 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
             putParcelable("post", post)
         }
         detailPostFragment.arguments = bundle
-        activity!!.supportFragmentManager.beginTransaction()
-            .replace(
-                R.id.fragment_container,
-                detailPostFragment,
-                DetailPostFragment::class.java.simpleName
-            )
-            .addToBackStack(null)
-            .commit()
+        activity?.apply {
+            supportFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragment_container,
+                    detailPostFragment,
+                    DetailPostFragment::class.java.simpleName
+                )
+                .addToBackStack(null)
+                .commit()
+        }
     }
 
 

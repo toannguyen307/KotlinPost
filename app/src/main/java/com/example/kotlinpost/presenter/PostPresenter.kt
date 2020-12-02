@@ -16,12 +16,16 @@ class PostPresenter(private val iView: Contract.IView) : Contract.IPresenter {
             override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
                 val postList: List<Post>? = response.body()
                 APIManager.requestAPI.listUser().enqueue(object : Callback<List<Users>> {
-                    override fun onResponse(call: Call<List<Users>>, response: Response<List<Users>>) {
-                        val usersList : List<Users>? = response.body()
+                    override fun onResponse(
+                        call: Call<List<Users>>,
+                        response: Response<List<Users>>
+                    ) {
+                        val usersList: List<Users>? = response.body()
                         iView.showHideLoading()
                         postList?.let {
-                            for (post in postList){
-                                post.nameAuthor= usersList?.find { it.id==post.userId}?.name.toString()
+                            for (post in postList) {
+                                post.nameAuthor =
+                                    usersList?.firstOrNull { it.id == post.userId }?.name.toString()
                             }
                         }
                         iView.showListData(postList)
@@ -33,6 +37,7 @@ class PostPresenter(private val iView: Contract.IView) : Contract.IPresenter {
                     }
                 })
             }
+
             override fun onFailure(call: Call<List<Post>>, t: Throwable) {
                 iView.showHideLoading()
                 iView.showError(Exception(t))
