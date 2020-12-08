@@ -38,6 +38,5 @@ class DetailPostFragment : Fragment() {
             tvUserId.text = "User ID: ${it.userId}"
             tvNameAuthor.text = "Name Author: ${it.nameAuthor}"
         }
-
     }
 }

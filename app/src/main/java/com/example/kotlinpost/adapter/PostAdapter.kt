@@ -35,4 +35,5 @@ class PostAdapter(private val posts: List<Post>, private val onItemListener: OnI
         val line: LinearLayout = itemView.findViewById(R.id.line)
     }
 
+
 }

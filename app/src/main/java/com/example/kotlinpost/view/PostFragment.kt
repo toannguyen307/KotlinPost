@@ -104,6 +104,4 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
                 .commit()
         }
     }
-
-
 }

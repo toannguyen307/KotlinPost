@@ -4,45 +4,52 @@ import com.example.kotlinpost.Contract
 import com.example.kotlinpost.model.Post
 import com.example.kotlinpost.model.Users
 import com.example.kotlinpost.retrofit.APIManager
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
+import io.reactivex.*
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.functions.BiFunction
+import io.reactivex.schedulers.Schedulers
+import java.util.*
+import kotlin.Exception
 
 class PostPresenter(private val iView: Contract.IView) : Contract.IPresenter {
     override fun getData() {
         iView.showLoading()
-        APIManager.requestAPI.listPost().enqueue(object : Callback<List<Post>> {
-            override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
-                val postList: List<Post>? = response.body()
-                APIManager.requestAPI.listUser().enqueue(object : Callback<List<Users>> {
-                    override fun onResponse(
-                        call: Call<List<Users>>,
-                        response: Response<List<Users>>
-                    ) {
-                        val usersList: List<Users>? = response.body()
-                        iView.showHideLoading()
-                        postList?.let {
-                            for (post in postList) {
-                                post.nameAuthor =
-                                    usersList?.firstOrNull { it.id == post.userId }?.name.toString()
-                            }
-                        }
-                        iView.showListData(postList)
-                    }
+        Single.zip(getPostObservable(), getUsersObservable(),
+            BiFunction { postsList, usersList ->
+                return@BiFunction filterNameAuthorPost(
+                    postsList,
+                    usersList
+                )
+            })
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(getObserver())
+    }
 
-                    override fun onFailure(call: Call<List<Users>>, t: Throwable) {
-                        iView.showHideLoading()
-                        iView.showError(Exception(t))
-                    }
-                })
-            }
+    private fun getUsersObservable(): Single<List<Users>> = APIManager.requestAPI.listUser()
 
-            override fun onFailure(call: Call<List<Post>>, t: Throwable) {
-                iView.showHideLoading()
-                iView.showError(Exception(t))
+    private fun getPostObservable(): Single<List<Post>> = APIManager.requestAPI.listPost()
 
-            }
-        })
+    private fun filterNameAuthorPost(posts: List<Post>, users: List<Users>): List<Post> {
+        posts.forEach { post ->
+            post.nameAuthor = users?.firstOrNull { it.id == post.userId }?.name.toString()
+        }
+        return posts
+    }
+
+    private fun getObserver(): SingleObserver<List<Post>> = object : SingleObserver<List<Post>> {
+        override fun onSuccess(value: List<Post>?) {
+            iView.showHideLoading()
+            iView.showListData(value)
+        }
+
+        override fun onSubscribe(d: Disposable?) {
+        }
+
+        override fun onError(e: Throwable?) {
+            iView.showHideLoading()
+            iView.showError(Exception(e))
+        }
     }
 }
