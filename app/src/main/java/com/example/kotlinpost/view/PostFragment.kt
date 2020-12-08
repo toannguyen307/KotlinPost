@@ -68,6 +68,7 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
     }
 
     override fun showLoading() {
+        rvPost.visibility= View.GONE
         progressBar.visibility = View.VISIBLE
     }
 
@@ -78,6 +79,7 @@ class PostFragment : Fragment(), Contract.IView, OnItemListener {
     override fun showHideLoading() {
         swipeRefresh.isRefreshing = false
         progressBar.visibility = View.GONE
+        rvPost.visibility=View.VISIBLE
     }
 
     override fun showListData(postList: List<Post>?) {
