@@ -24,32 +24,26 @@ class PostPresenter(private val iView: Contract.IView) : Contract.IPresenter {
             })
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(getObserver())
+            .subscribe({ result ->
+                iView.showHideLoading()
+                iView.showListData(result)
+            },
+                { error ->
+                    iView.showHideLoading()
+                    iView.showError(Exception(error))
+                }
+            )
     }
 
     private fun getUsersObservable(): Single<List<Users>> = APIManager.requestAPI.listUser()
 
     private fun getPostObservable(): Single<List<Post>> = APIManager.requestAPI.listPost()
 
-    private fun filterNameAuthorPost(posts: List<Post>, users: List<Users>): List<Post> {
-        posts.forEach { post ->
-            post.nameAuthor = users?.firstOrNull { it.id == post.userId }?.name.toString()
+    private fun filterNameAuthorPost(postsList: List<Post>, usersList: List<Users>): List<Post> {
+        postsList.forEach { post ->
+            post.nameAuthor = usersList?.firstOrNull { it.id == post.userId }?.name.toString()
         }
-        return posts
+        return postsList
     }
 
-    private fun getObserver(): SingleObserver<List<Post>> = object : SingleObserver<List<Post>> {
-        override fun onSuccess(value: List<Post>?) {
-            iView.showHideLoading()
-            iView.showListData(value)
-        }
-
-        override fun onSubscribe(d: Disposable?) {
-        }
-
-        override fun onError(e: Throwable?) {
-            iView.showHideLoading()
-            iView.showError(Exception(e))
-        }
-    }
 }
